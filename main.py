@@ -53,7 +53,7 @@ def handle_message(event):
     try:
         with ApiClient(configuration) as api_client:
             result = dbmanager.SearchSticker(event.message.text)
-            if(result == "not found"):
+            if(result == "not found"):  #沒找到東西
                 line_bot_api = MessagingApi(api_client)
                 line_bot_api.reply_message_with_http_info(
                 ReplyMessageRequest(
@@ -63,23 +63,25 @@ def handle_message(event):
                     messages=[TextMessage(text="not found")]
                 )
             )
-            else:
+            else:   #有找到東西
+                response = []
+                for elem in result:
+                    response.append(
+                        ImageMessage(
+                            original_content_url = elem[4],
+                            preview_image_url = elem[4]
+                        )
+                    )
+                    response.append(
+                        TextMessage(text="來源:"+elem[5])
+                    )
                 line_bot_api = MessagingApi(api_client)
                 line_bot_api.reply_message_with_http_info(
                     ReplyMessageRequest(
                         reply_token=event.reply_token,
-                        #messages=[TextMessage(text=event.message.text)]    #respond一樣的
-                        #messages=[TextMessage(text= dbmanager.SearchSticker(event.message.text))]  #response文字結果
-                        messages=[ImageMessage(
-                            original_content_url = result[2],
-                            preview_image_url = result[2]
-                            ),
-                            TextMessage(text="來源:"+result[3])
-                        ]
+                        messages=response
                     )
                 )
-        #original_content_url = "https://ithelp.ithome.com.tw/upload/images/20220925/20151681EaMkK6ROvq.jpg",
-        #preview_image_url = "https://ithelp.ithome.com.tw/upload/images/20220925/20151681EaMkK6ROvq.jpg"
     except Exception as e:
         print("(error)[handle_message]e:")
         print(e)

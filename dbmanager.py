@@ -8,11 +8,13 @@ def SearchSticker(key):
     """)
     #conn.commit()
     rows = cursor.fetchall()
+    result = []
     for row in rows:
         #print(row)
         if(row[1] == key):
-            conn.close()
-            return row
+            result.append(row)
     conn.close()
-    return "not found"
+    if result == []:
+        return "not found"
+    else: return result
 
