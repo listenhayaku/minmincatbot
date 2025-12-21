@@ -11,6 +11,19 @@
             td{
                 border: 2px solid black;
             }
+            button{
+                width: 5rem;
+                height: 3rem;
+                background-color: orange;
+                border: unset;
+            }
+            button:hover{
+                cursor: pointer;
+                background-color: #e6ba0a;
+            }
+            button:active{
+                background-color: #d5f00a;
+            }
         </style>
     </header>
     <body>
@@ -28,5 +41,14 @@
                 </td>
             </tr>
         </table>
+        <script>
+            document.querySelectorAll("button[id^='btn-']").forEach(btn => {
+            btn.onclick = () => {
+                const i = btn.id.split("-")[1];
+                const text = document.getElementById("url-" + i).innerText.trim();
+                navigator.clipboard.writeText(text);
+                };
+            });
+        </script>
     </body>
 </html>

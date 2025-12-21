@@ -69,10 +69,43 @@ int Exportdata(std::string inbuffer){ //本來我是想用網址當作檔名就�
         filesize = ftell(fp);
         fseek(fp,0,SEEK_SET);
         char* buffer;
+        std::string strbuffer;
         buffer = new char[filesize];
         fread(buffer,1,filesize,fp);
-        printf("(debug)[Exportdata]buffer:\n");
-        for(int i = 0;i < filesize;i++) printf("%c",buffer[i]);
+        //printf("(debug)[Exportdata]buffer:\n");
+        //for(int i = 0;i < filesize;i++) printf("%c",buffer[i]);
+        strbuffer = buffer;
+
+        //找前段
+        pattern = std::regex(R"(<html>[\s\S]+?<table>[\s]+)");
+        begin = std::sregex_iterator(strbuffer.begin(),strbuffer.end(),pattern);
+        for(auto it = begin;it != end;it++){
+            filecontent = it->str();
+        }
+
+        //塞中間
+        for(int i = 0;i < vec_url.size();i++){
+            std::string btnid = "btn-" + std::to_string(i);
+            std::string urlid = "url-" + std::to_string(i);
+            filecontent += R"(<tr class="@replacehere">
+                <td>
+                    <img src=")"+ vec_url[i] + R"("/>
+                </td>
+                <td id=")"+ urlid  + R"(">
+                    )" + vec_url[i] + R"( 
+                </td>
+                <td>
+                    <button id=")"+ btnid + R"(">copy</button>
+                </td>
+            </tr>)";
+        }
+        //找後段
+        pattern = std::regex(R"([\s\S]+(<\/table>[\s\S]+?<\/html>))");
+        begin = std::sregex_iterator(strbuffer.begin(),strbuffer.end(),pattern);
+        for(auto it = begin;it != end;it++){
+            filecontent += (*it)[1].str();
+        }
+
         delete[] buffer;
     }
     else{
@@ -83,7 +116,7 @@ int Exportdata(std::string inbuffer){ //本來我是想用網址當作檔名就�
 
     //filecontent = inbuffer;
     //最終寫入
-    fp = _wfopen(utf8_to_wstring(titlename.c_str()).c_str(),L"w");
+    fp = _wfopen(utf8_to_wstring((titlename+".html").c_str()).c_str(),L"w");
     if(fp){
         fwrite(filecontent.c_str(),1,filecontent.size(),fp);
         fclose(fp);
