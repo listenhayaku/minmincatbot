@@ -30,8 +30,6 @@ std::wstring utf8_to_wstring(const std::string& s) {    //gpt幫我生成的 嘿
 }
 
 
-
-
 int Exportdata(std::string inbuffer){ //本來我是想用網址當作檔名就好，但是system不允許奇怪字元，只好進來再做處理
     std::string titlename;  //檔案名稱，就是貼圖標題
     std::string filecontent;   //檔案內容
@@ -77,10 +75,10 @@ int Exportdata(std::string inbuffer){ //本來我是想用網址當作檔名就�
         strbuffer = buffer;
 
         //找前段
-        pattern = std::regex(R"(<html>[\s\S]+?<table>[\s]+)");
+        pattern = std::regex(R"(([\s\S]+?<h1>)@stickername(</h1>[\s]+<table>[\s]+))");
         begin = std::sregex_iterator(strbuffer.begin(),strbuffer.end(),pattern);
         for(auto it = begin;it != end;it++){
-            filecontent = it->str();
+            filecontent = (*it)[1].str() + titlename + (*it)[2].str();
         }
 
         //塞中間
@@ -229,11 +227,16 @@ HINTERNET hSession = WinHttpOpen(
 }
 
 int Getrunlist(std::vector<std::wstring> &vec_runlist){
-    int i = 0;
-    char buffer[1024] = {0};
+    int filesize = 0;
+    char* buffer;
     std::string sbuffer;
     FILE* fp =  fopen("runlist.txt","r");
-    fread(buffer,1,1024,fp);
+    fseek(fp,0,SEEK_END);
+    filesize = ftell(fp);
+    buffer = new char[filesize];
+    //printf("(debug)[Getrunlist]filesize = %d\n",filesize);
+    fseek(fp,0,SEEK_SET);
+    fread(buffer,1,filesize,fp);
     fclose(fp);
     sbuffer = buffer;
     //std::cout << sbuffer << endl;
@@ -256,6 +259,9 @@ int main() {
     std::vector<std::wstring> vec_runlist;
 
     Getrunlist(vec_runlist);
+    //printf("(debug)[main]vec_runlist start\n");
+    //for(int i = 0;i < vec_runlist.size();i++) std::wcout << vec_runlist[i] << std::endl;
+    //printf("(debug)[main]vec_runlist end\n");
     for(auto it = vec_runlist.begin();it != vec_runlist.end();it++) 
         Crawler(*it); 
     return 0;

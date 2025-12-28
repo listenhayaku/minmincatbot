@@ -21,13 +21,17 @@ from linebot.v3.webhooks import (
 
 from linebot.models import(ImageSendMessage)
 
+
+import os
 import dbmanager
 
 app = Flask(__name__)
 
-configuration = Configuration(access_token='CIKzKE9e67IxcBxJgqBDtFdtyf3qmcW9+EC6hwR1WKFc2V1KHlQPfWFjDzcMCTSaDHlchm/SZ1SKTOJhY1kWVqMD4OnuAbCa+ihyeYddAC0kct9kdY+SXHGBP9dwzxGAXCRKmWwEPyO0V0+0ySoa8QdB04t89/1O/w1cDnyilFU=')
-handler = WebhookHandler('ff9fa0742ea2fbcee0a0a2bee3e150f2')
+configuration = Configuration(access_token=os.getenv("CHANNEL_ACCESS_TOKEN"))
+line_handler = WebhookHandler(os.getenv("CHANNEL_SECRET"))
 
+#configuration = Configuration(access_token="CIKzKE9e67IxcBxJgqBDtFdtyf3qmcW9+EC6hwR1WKFc2V1KHlQPfWFjDzcMCTSaDHlchm/SZ1SKTOJhY1kWVqMD4OnuAbCa+ihyeYddAC0kct9kdY+SXHGBP9dwzxGAXCRKmWwEPyO0V0+0ySoa8QdB04t89/1O/w1cDnyilFU=")
+#line_handler = WebhookHandler("ff9fa0742ea2fbcee0a0a2bee3e150f2")
 
 @app.route("/callback", methods=['POST'])
 def callback():
@@ -40,7 +44,7 @@ def callback():
 
     # handle webhook body
     try:
-        handler.handle(body, signature)
+        line_handler.handle(body, signature)
     except InvalidSignatureError:
         app.logger.info("Invalid signature. Please check your channel access token/channel secret.")
         abort(400)
@@ -48,12 +52,12 @@ def callback():
     return 'OK'
 
 
-@handler.add(MessageEvent, message=TextMessageContent)
+@line_handler.add(MessageEvent, message=TextMessageContent)
 def handle_message(event):
     try:
         with ApiClient(configuration) as api_client:
             result = dbmanager.SearchSticker(event.message.text)
-            if(result == "not found"):  #沒找到東西
+            if(result == []):  #沒找到東西
                 line_bot_api = MessagingApi(api_client)
                 line_bot_api.reply_message_with_http_info(
                 ReplyMessageRequest(
